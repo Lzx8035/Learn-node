@@ -7,7 +7,7 @@ const toursFilePath = path.join(
   '..',
   'dev-data',
   'data',
-  'tours-simple.json'
+  'tours-simple.json',
 );
 
 const tours = JSON.parse(fs.readFileSync(toursFilePath, 'utf-8'));
@@ -16,7 +16,11 @@ const checkId = (req, res, next, val) => {
   if (req.params.id * 1 > tours.length) {
     return res.status(404).json({ message: 'Tour not found' });
   }
-  console.log(`Tour id is: ${val}`);
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Tour id is: ${val}`);
+  }
+
   next();
 };
 
@@ -48,12 +52,12 @@ const createNewTour = (req, res) => {
 };
 
 const getTourById = (req, res) => {
-  const tour = tours.find((tour) => tour.id === parseInt(req.params.id, 10)); // 10 means 10 base conversion
+  const tour = tours.find((t) => t.id === parseInt(req.params.id, 10)); // 10 means 10 base conversion
   res.status(200).json({ message: 'success', data: tour });
 };
 
 const updateTourById = (req, res) => {
-  const tour = tours.find((tour) => tour.id === parseInt(req.params.id, 10));
+  const tour = tours.find((t) => t.id === parseInt(req.params.id, 10));
   if (!tour) {
     return res.status(404).json({ message: 'Tour not found' });
   }
@@ -68,7 +72,7 @@ const updateTourById = (req, res) => {
 };
 
 const deleteTourById = (req, res) => {
-  const tour = tours.find((tour) => tour.id === parseInt(req.params.id, 10));
+  const tour = tours.find((t) => t.id === parseInt(req.params.id, 10));
   if (!tour) {
     return res.status(404).json({ message: 'Tour not found' });
   }

@@ -1,6 +1,7 @@
 const express = require('express');
 
 const TourController = require('../controllers/tourController');
+
 const {
   checkId,
   checkBody,

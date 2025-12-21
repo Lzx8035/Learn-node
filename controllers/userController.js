@@ -1,10 +1,8 @@
-const createNewUser = (req, res) => {
-  return res.status(500).json({ message: 'error', error: 'Not implemented' });
-};
+const createNewUser = (req, res) =>
+  res.status(500).json({ message: 'error', error: 'Not implemented' });
 
-const getAllUsers = (req, res) => {
-  return res.status(500).json({ message: 'error', error: 'Not implemented' });
-};
+const getAllUsers = (req, res) =>
+  res.status(500).json({ message: 'error', error: 'Not implemented' });
 
 const getUserById = (req, res) => {};
 
