@@ -1,72 +1,174 @@
-# 快速启动指南
+# Natours API Learning Project 🍞
 
-## 启动 Docker 服务
+A RESTful API built with Node.js, Express, and MongoDB for managing tour bookings.
+
+## Tech Stack
+
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- Docker & Docker Compose
+
+## Quick Start
+
+### Using Docker (Recommended)
+
+1. **Start all services**
+
+   ```bash
+   # Production mode
+   docker compose up -d
+
+   # Development mode (with hot reload)
+   docker compose -f docker-compose.dev.yml up -d
+   ```
+
+2. **Import sample data**
+
+   ```bash
+   docker compose exec app npm run import:data
+   ```
+
+3. **Access the application**
+   - API: http://localhost:3000
+   - MongoDB: localhost:27017
+
+4. **View logs**
+
+   ```bash
+   npm run docker:logs
+   # or
+   docker compose logs -f
+   ```
+
+5. **Stop services**
+   ```bash
+   npm run docker:down
+   # or
+   docker compose down
+   ```
+
+### Local Development (without Docker)
+
+1. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment variables**
+   Create a `.env` file:
+
+   ```env
+   NODE_ENV=development
+   PORT=3000
+   DATABASE=mongodb://127.0.0.1:27017/natours
+   ```
+
+3. **Start MongoDB**
+
+   ```bash
+   # macOS
+   brew services start mongodb-community
+   ```
+
+4. **Import sample data**
+
+   ```bash
+   npm run import:data
+   ```
+
+5. **Start the application**
+   ```bash
+   npm run dev
+   ```
+
+## Available Scripts
+
+- `npm start` - Start production server
+- `npm run dev` - Start development server (with nodemon)
+- `npm run import:data` - Import sample data to MongoDB
+- `npm run delete:data` - Delete all data from MongoDB
+- `npm run docker:up` - Start Docker containers
+- `npm run docker:down` - Stop Docker containers
+- `npm run docker:logs` - View Docker logs
+
+## Data Management
+
+### Import Data
+
+Import sample data (users, tours, and reviews) into MongoDB:
 
 ```bash
-# 生产模式
-docker compose up -d
+# Using Docker
+docker compose exec app npm run import:data
 
-# 或开发模式（支持热重载）
-docker compose -f docker-compose.dev.yml up -d
+# Local development
+npm run import:data
 ```
 
-## 查看服务状态
+This will:
+
+- Connect to MongoDB
+- Delete existing data (if any)
+- Import users, tours, and reviews in the correct order
+
+### Delete Data
+
+Delete all data from MongoDB:
 
 ```bash
-# 查看所有运行中的容器
-docker compose ps
+# Using Docker
+docker compose exec app npm run delete:data
 
-# 或使用 docker 命令
-docker ps
+# Local development
+npm run delete:data
 ```
 
-你应该看到两个容器：
+### View Data
 
-- `natours-mongodb` - MongoDB 数据库
-- `natours-app` - Node.js 应用
+Use MongoDB Compass to view and manage data:
 
-## 访问服务
+- **Docker**: `mongodb://localhost:27017/natours`
+- **Local**: `mongodb://127.0.0.1:27017/natours`
 
-### 1. Node.js API 应用
+## API Endpoints
 
-- **URL**: http://localhost:3000
-- **API 端点**: http://localhost:3000/api/v1/tours
+- `GET /api/v1/tours` - Get all tours
+- `GET /api/v1/tours/:id` - Get a specific tour
+- `POST /api/v1/tours` - Create a new tour
+- `PATCH /api/v1/tours/:id` - Update a tour
+- `DELETE /api/v1/tours/:id` - Delete a tour
 
-在浏览器中打开或使用 curl：
+## Project Structure
 
-```bash
-curl http://localhost:3000/api/v1/tours
+```
+.
+├── controllers/       # Route controllers
+├── models/           # Mongoose models (Tour, User, Review)
+├── routes/           # Express routes
+├── utils/            # Utility functions
+├── dev-data/         # Sample data and import scripts
+├── public/           # Static files
+├── docker-compose.yml # Docker Compose configuration
+├── Dockerfile        # Docker image configuration
+└── server.js         # Server entry point
 ```
 
-### 2. MongoDB 数据库
+## Database Models
 
-- **连接字符串**: `mongodb://localhost:27017/natours`
-- **使用 MongoDB Compass**: 连接字符串输入上面的地址
+- **Tour** - Tour information with locations, guides, and ratings
+- **User** - User accounts with authentication
+- **Review** - User reviews for tours
 
-## 查看日志
+## Using MongoDB Compass
 
-```bash
-# 查看所有服务日志
-docker compose logs -f
+Connect to the database:
 
-# 查看特定服务日志
-docker compose logs -f app      # Node.js 应用日志
-docker compose logs -f mongodb  # MongoDB 日志
-```
+- **Docker mode**: `mongodb://localhost:27017/natours`
+- **Local mode**: `mongodb://127.0.0.1:27017/natours`
 
-## 停止服务
+## License
 
-```bash
-docker compose down
-```
-
-## 验证端口是否开放
-
-```bash
-# 检查端口 3000 (Node.js)
-curl http://localhost:3000
-
-# 检查端口 27017 (MongoDB)
-# 使用 MongoDB Compass 或
-docker compose exec mongodb mongosh natours --eval "db.stats()"
-```
+ISC
