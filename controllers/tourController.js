@@ -1,27 +1,20 @@
-const fs = require('fs');
-const path = require('path');
+const Tour = require('../models/Tour');
 
-// 定义文件路径常量，避免重复
-const toursFilePath = path.join(
-  __dirname,
-  '..',
-  'dev-data',
-  'data',
-  'tours-simple.json',
-);
+const checkId = async (req, res, next, val) => {
+  try {
+    const tour = await Tour.findById(val);
+    if (!tour) {
+      return res.status(404).json({ message: 'Tour not found' });
+    }
 
-const tours = JSON.parse(fs.readFileSync(toursFilePath, 'utf-8'));
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Tour id is: ${val}`);
+    }
 
-const checkId = (req, res, next, val) => {
-  if (req.params.id * 1 > tours.length) {
+    next();
+  } catch (error) {
     return res.status(404).json({ message: 'Tour not found' });
   }
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Tour id is: ${val}`);
-  }
-
-  next();
 };
 
 const checkBody = (req, res, next) => {
@@ -31,58 +24,100 @@ const checkBody = (req, res, next) => {
   next();
 };
 
-const getAllTours = (req, res) => {
-  res.status(200).json({
-    message: 'success',
-    length: tours.length,
-    data: tours,
-    requestTime: req.requestTime,
-  });
-};
+const getAllTours = async (req, res) => {
+  try {
+    const tours = await Tour.find();
 
-const createNewTour = (req, res) => {
-  const newTour = { ...req.body, id: tours[tours.length - 1].id + 1 };
-  tours.push(newTour);
-  fs.writeFile(toursFilePath, JSON.stringify(tours, null, 2), (err) => {
-    if (err) {
-      return res.status(500).json({ message: 'error', error: err });
-    }
-    res.status(201).json({ message: 'success', data: newTour });
-  });
-};
-
-const getTourById = (req, res) => {
-  const tour = tours.find((t) => t.id === parseInt(req.params.id, 10)); // 10 means 10 base conversion
-  res.status(200).json({ message: 'success', data: tour });
-};
-
-const updateTourById = (req, res) => {
-  const tour = tours.find((t) => t.id === parseInt(req.params.id, 10));
-  if (!tour) {
-    return res.status(404).json({ message: 'Tour not found' });
+    res.status(200).json({
+      message: 'success',
+      length: tours.length,
+      data: tours,
+      requestTime: req.requestTime,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'error',
+      error: error.message,
+    });
   }
-  Object.assign(tour, req.body);
-
-  fs.writeFile(toursFilePath, JSON.stringify(tours, null, 2), (err) => {
-    if (err) {
-      return res.status(500).json({ message: 'error', error: err });
-    }
-    res.status(200).json({ message: 'success', data: tour });
-  });
 };
 
-const deleteTourById = (req, res) => {
-  const tour = tours.find((t) => t.id === parseInt(req.params.id, 10));
-  if (!tour) {
-    return res.status(404).json({ message: 'Tour not found' });
+const createNewTour = async (req, res) => {
+  try {
+    const newTour = await Tour.create(req.body);
+
+    res.status(201).json({
+      message: 'success',
+      data: newTour,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'error',
+      error: error.message,
+    });
   }
-  tours.splice(tours.indexOf(tour), 1);
-  fs.writeFile(toursFilePath, JSON.stringify(tours, null, 2), (err) => {
-    if (err) {
-      return res.status(500).json({ message: 'error', error: err });
+};
+
+const getTourById = async (req, res) => {
+  try {
+    const tour = await Tour.findById(req.params.id);
+
+    if (!tour) {
+      return res.status(404).json({ message: 'Tour not found' });
     }
-    res.status(200).json({ message: 'success' });
-  });
+
+    res.status(200).json({
+      message: 'success',
+      data: tour,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Tour not found',
+      error: error.message,
+    });
+  }
+};
+
+const updateTourById = async (req, res) => {
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!tour) {
+      return res.status(404).json({ message: 'Tour not found' });
+    }
+
+    res.status(200).json({
+      message: 'success',
+      data: tour,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'error',
+      error: error.message,
+    });
+  }
+};
+
+const deleteTourById = async (req, res) => {
+  try {
+    const tour = await Tour.findByIdAndDelete(req.params.id);
+
+    if (!tour) {
+      return res.status(404).json({ message: 'Tour not found' });
+    }
+
+    res.status(200).json({
+      message: 'success',
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'error',
+      error: error.message,
+    });
+  }
 };
 
 module.exports = {
