@@ -16,9 +16,14 @@
     "format:check": "prettier --check \"**/*.{js,json,md}\"",
     "import:data": "node dev-data/import-dev-data.js --import",
     "delete:data": "node dev-data/import-dev-data.js --delete",
-    "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f"
+    "docker:up": "docker compose -f docker-compose.dev.yml up -d --build",
+    "docker:up:prod": "docker compose -f docker-compose.prod.yml up -d --build",
+    "docker:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:down:prod": "docker compose -f docker-compose.prod.yml down",
+    "docker:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "docker:logs:prod": "docker compose -f docker-compose.prod.yml logs -f",
+    "docker:import:data": "docker compose -f docker-compose.dev.yml exec app npm run import:data",
+    "docker:delete:data": "docker compose -f docker-compose.dev.yml exec app npm run delete:data"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

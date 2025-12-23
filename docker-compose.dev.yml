@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # MongoDB 服务
   mongodb:
     image: mongo:7.0
     container_name: natours-mongodb
@@ -22,7 +21,6 @@ services:
       retries: 5
       start_period: 10s
 
-  # Node.js 应用服务（开发模式，使用 nodemon）
   app:
     build:
       context: .
@@ -34,7 +32,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
-      DATABASE: mongodb://mongodb:27017/natours
+      DATABASE: ${DATABASE:-mongodb://mongodb:27017/natours}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -54,3 +52,8 @@ volumes:
 networks:
   natours-network:
     driver: bridge
+
+# 加载优先级（在 Docker 中）
+# Docker Compose 的 environment 部分（最高优先级）
+# Docker Compose 的 env_file（从 .env 读取）
+# dotenv.config()（在代码中加载 .env）

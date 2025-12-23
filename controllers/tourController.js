@@ -26,7 +26,27 @@ const checkBody = (req, res, next) => {
 
 const getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    // 检查是否是 admin 用户（需要从认证中间件获取 req.user）
+    // 如果没有认证中间件，可以通过查询参数 bypassSecretTour=true 来绕过
+    const isAdmin =
+      req.user?.role === 'admin' || req.query.bypassSecretTour === 'true';
+
+    let query = Tour.find();
+
+    // Admin 用户可以查看 secretTour
+    if (isAdmin) {
+      query = query.setOptions({ bypassSecretTour: true });
+    }
+
+    // 按需 populate guides（通过查询参数控制）
+    if (req.query.populateGuides === 'true') {
+      query = query.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt',
+      });
+    }
+
+    const tours = await query;
 
     res.status(200).json({
       message: 'success',
@@ -60,7 +80,26 @@ const createNewTour = async (req, res) => {
 
 const getTourById = async (req, res) => {
   try {
-    const tour = await Tour.findById(req.params.id);
+    // 检查是否是 admin 用户（或通过查询参数绕过）
+    const isAdmin =
+      req.user?.role === 'admin' || req.query.bypassSecretTour === 'true';
+
+    let query = Tour.findById(req.params.id);
+
+    // Admin 用户可以查看 secretTour
+    if (isAdmin) {
+      query = query.setOptions({ bypassSecretTour: true });
+    }
+
+    // 按需 populate guides（默认 populate，可通过 populateGuides=false 禁用）
+    if (req.query.populateGuides !== 'false') {
+      query = query.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt',
+      });
+    }
+
+    const tour = await query;
 
     if (!tour) {
       return res.status(404).json({ message: 'Tour not found' });
@@ -109,9 +148,7 @@ const deleteTourById = async (req, res) => {
       return res.status(404).json({ message: 'Tour not found' });
     }
 
-    res.status(200).json({
-      message: 'success',
-    });
+    res.status(204).send();
   } catch (error) {
     res.status(400).json({
       message: 'error',

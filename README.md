@@ -1,6 +1,6 @@
 # Natours API Learning Project 🍞
 
-A RESTful API built with Node.js, Express, and MongoDB for managing tour bookings.
+A RESTful API learning project built with Node.js, Express, and MongoDB for managing tour bookings.
 
 ## Tech Stack
 
@@ -12,22 +12,22 @@ A RESTful API built with Node.js, Express, and MongoDB for managing tour booking
 
 ## Quick Start
 
-### Using Docker (Recommended)
+### Using Docker
 
 1. **Start all services**
 
    ```bash
-   # Production mode
-   docker compose up -d
+   # Development mode (with hot reload, auto-rebuild)
+   npm run docker:up
 
-   # Development mode (with hot reload)
-   docker compose -f docker-compose.dev.yml up -d
+   # Production mode (auto-rebuild)
+   npm run docker:up:prod
    ```
 
-2. **Import sample data**
+2. **Import sample data** (optional)
 
    ```bash
-   docker compose exec app npm run import:data
+   npm run docker:import:data
    ```
 
 3. **Access the application**
@@ -38,100 +38,46 @@ A RESTful API built with Node.js, Express, and MongoDB for managing tour booking
 
    ```bash
    npm run docker:logs
-   # or
-   docker compose logs -f
    ```
 
 5. **Stop services**
    ```bash
    npm run docker:down
-   # or
-   docker compose down
    ```
 
-### Local Development (without Docker)
+## Database Configuration
 
-1. **Install dependencies**
+### Development Environment (Docker)
 
-   ```bash
-   npm install
-   ```
+When using `docker-compose.dev.yml`, **you don't need to configure `DATABASE` in `.env` file**.
 
-2. **Configure environment variables**
-   Create a `.env` file:
+### Production Environment (Docker)
 
-   ```env
-   NODE_ENV=development
-   PORT=3000
-   DATABASE=mongodb://127.0.0.1:27017/natours
-   ```
-
-3. **Start MongoDB**
-
-   ```bash
-   # macOS
-   brew services start mongodb-community
-   ```
-
-4. **Import sample data**
-
-   ```bash
-   npm run import:data
-   ```
-
-5. **Start the application**
-   ```bash
-   npm run dev
-   ```
+When using `docker-compose.prod.yml` for production deployment with cloud database（MongoDB Atlus），**You must configure `DATABASE` in `.env` file** with your cloud database connection string.
 
 ## Available Scripts
+
+### Application Scripts
 
 - `npm start` - Start production server
 - `npm run dev` - Start development server (with nodemon)
 - `npm run import:data` - Import sample data to MongoDB
 - `npm run delete:data` - Delete all data from MongoDB
-- `npm run docker:up` - Start Docker containers
-- `npm run docker:down` - Stop Docker containers
-- `npm run docker:logs` - View Docker logs
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
 
-## Data Management
+### Docker Scripts
 
-### Import Data
+- `npm run docker:up` - Start Docker containers (development, auto-rebuild)
+- `npm run docker:up:prod` - Start Docker containers (production, auto-rebuild)
+- `npm run docker:down` - Stop Docker containers (development)
+- `npm run docker:down:prod` - Stop Docker containers (production)
+- `npm run docker:logs` - View Docker logs (development)
+- `npm run docker:logs:prod` - View Docker logs (production)
+- `npm run docker:import:data` - Import sample data (in Docker container)
+- `npm run docker:delete:data` - Delete all data (in Docker container)
 
-Import sample data (users, tours, and reviews) into MongoDB:
-
-```bash
-# Using Docker
-docker compose exec app npm run import:data
-
-# Local development
-npm run import:data
-```
-
-This will:
-
-- Connect to MongoDB
-- Delete existing data (if any)
-- Import users, tours, and reviews in the correct order
-
-### Delete Data
-
-Delete all data from MongoDB:
-
-```bash
-# Using Docker
-docker compose exec app npm run delete:data
-
-# Local development
-npm run delete:data
-```
-
-### View Data
-
-Use MongoDB Compass to view and manage data:
-
-- **Docker**: `mongodb://localhost:27017/natours`
-- **Local**: `mongodb://127.0.0.1:27017/natours`
+**Note**: `docker:up` commands automatically rebuild images when Dockerfile changes.
 
 ## API Endpoints
 
@@ -145,15 +91,17 @@ Use MongoDB Compass to view and manage data:
 
 ```
 .
-├── controllers/       # Route controllers
-├── models/           # Mongoose models (Tour, User, Review)
-├── routes/           # Express routes
-├── utils/            # Utility functions
-├── dev-data/         # Sample data and import scripts
-├── public/           # Static files
-├── docker-compose.yml # Docker Compose configuration
-├── Dockerfile        # Docker image configuration
-└── server.js         # Server entry point
+├── controllers/              # Route controllers
+├── models/                  # Mongoose models (Tour, User, Review)
+├── routes/                  # Express routes
+├── utils/                   # Utility functions
+├── dev-data/                # Sample data and import scripts
+├── public/                  # Static files
+├── docker-compose.dev.yml   # Docker Compose (development)
+├── docker-compose.prod.yml  # Docker Compose (production)
+├── Dockerfile.dev           # Docker image (development)
+├── Dockerfile.prod          # Docker image (production)
+└── server.js                # Server entry point
 ```
 
 ## Database Models
@@ -161,13 +109,6 @@ Use MongoDB Compass to view and manage data:
 - **Tour** - Tour information with locations, guides, and ratings
 - **User** - User accounts with authentication
 - **Review** - User reviews for tours
-
-## Using MongoDB Compass
-
-Connect to the database:
-
-- **Docker mode**: `mongodb://localhost:27017/natours`
-- **Local mode**: `mongodb://127.0.0.1:27017/natours`
 
 ## License
 

@@ -6,8 +6,9 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: [true, 'A tour must have a name'],
       unique: true,
-      trim: true,
+      trim: true, // 去除字符串两端的空白字符
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'A tour must have a duration'],
@@ -103,36 +104,50 @@ const tourSchema = new mongoose.Schema(
 // 索引
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ startLocation: '2dsphere' });
+tourSchema.index({ slug: 1 });
 
 // 虚拟字段
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
-// 文档中间件: 在保存之前运行
+// 文档中间件: 在保存之前运行，生成 slug
 tourSchema.pre('save', function (next) {
-  // this 指向当前文档
+  this.slug = this.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
   next();
 });
 
-// 查询中间件
+// 查询中间件: 过滤 secretTour（除非设置了 bypassSecretTour 选项）
 tourSchema.pre(/^find/, function (next) {
-  this.find({ secretTour: { $ne: true } });
+  // 如果设置了 bypassSecretTour 选项（admin 用户），则不过滤
+  if (!this.getOptions().bypassSecretTour) {
+    this.find({ secretTour: { $ne: true } });
+  }
   this.start = Date.now();
   next();
 });
 
-tourSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: 'guides',
-    select: '-__v -passwordChangedAt',
-  });
-  next();
-});
-
-// 聚合中间件
+// 聚合中间件: 过滤 secretTour 并保护 $geoNear
 tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  const pipeline = this.pipeline();
+
+  // 检查是否有 $geoNear（必须在第一位）
+  const hasGeoNear = pipeline.length > 0 && pipeline[0].$geoNear;
+
+  // 如果设置了 bypassSecretTour 选项（admin 用户），则不过滤
+  if (!this.getOptions().bypassSecretTour) {
+    if (hasGeoNear) {
+      // $geoNear 必须在第一位，所以在其后添加 $match
+      pipeline.splice(1, 0, { $match: { secretTour: { $ne: true } } });
+    } else {
+      // 没有 $geoNear，可以在第一位添加 $match
+      pipeline.unshift({ $match: { secretTour: { $ne: true } } });
+    }
+  }
+
   next();
 });
 
